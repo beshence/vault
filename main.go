@@ -1,18 +1,27 @@
 package main
 
-import "github.com/gin-gonic/gin"
-import "net/http"
+import (
+	"net/http"
+
+	v1handlers "vault/api/v1"
+
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
-	r := gin.Default()
+	router := gin.Default()
 
-	r.GET("/ping", func(c *gin.Context) {
+	v1 := router.Group("/api/v1")
+
+	v1.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
 		})
 	})
 
-	err := r.Run("127.0.0.1:8081")
+	v1handlers.Auth(v1.Group("/auth"))
+
+	err := router.Run(":8080")
 	if err != nil {
 		return
 	}
