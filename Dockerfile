@@ -1,4 +1,4 @@
-FROM golang:1.26
+FROM golang:1.25.8 AS builder
 
 WORKDIR /usr/src/app
 
@@ -6,9 +6,15 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -v -o /usr/local/bin/vault .
+RUN CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/vault .
 
-EXPOSE 80
+FROM debian:bookworm-slim
+
+WORKDIR /usr/local/bin
+
+COPY --from=builder /usr/local/bin/vault /usr/local/bin/vault
+
+EXPOSE 8080
 
 ENTRYPOINT ["vault"]
 
