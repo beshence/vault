@@ -68,7 +68,7 @@ func CreateRepoV1dot0(deps *app.Dependencies) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
-			"repository": repository,
+			"repository": repository.Name,
 		})
 	}
 }
@@ -98,8 +98,13 @@ func ReposV1dot0(deps *app.Dependencies) gin.HandlerFunc {
 			return
 		}
 
+		names := make([]string, len(repositories))
+		for i, repository := range repositories {
+			names[i] = repository.Name
+		}
+
 		c.JSON(http.StatusOK, gin.H{
-			"repositories": repositories,
+			"repositories": names,
 		})
 	}
 }
