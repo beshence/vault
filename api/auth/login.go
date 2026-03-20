@@ -64,7 +64,7 @@ func LoginV1dot0(deps *app.Dependencies) gin.HandlerFunc {
 			return
 		}
 
-		tokens, err := auth.IssueTokenPairForNewSession(deps, user, c.GetHeader("User-Agent"))
+		tokens, err := auth.IssueTokenPairForNewSession(deps.DB, deps.AccessJWTManager, deps.RefreshJWTManager, user, c.GetHeader("User-Agent"))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": "failed to generate tokens",
