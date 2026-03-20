@@ -3,7 +3,6 @@ package auth
 import (
 	"errors"
 	"net/http"
-
 	"vault/internal/app"
 	internalAuth "vault/internal/auth"
 	"vault/internal/database/models"
