@@ -3,10 +3,10 @@ package middleware
 import "github.com/gin-gonic/gin"
 
 const (
-	ContextAuthClaimsKey        = "auth.claims"
-	ContextAuthSessionIDKey     = "auth.session_id"
-	ContextAuthUserIDKey        = "auth.user_id"
-	ContextAuthAccessTokenIDKey = "auth.access_token_id"
+	ContextAuthClaimsKey         = "auth.claims"
+	ContextAuthSessionIDKey      = "auth.session_id"
+	ContextAuthUserIDKey         = "auth.user_id"
+	ContextAuthRefreshTokenIDKey = "auth.refresh_token_id"
 )
 
 func GetCurrentUser(c *gin.Context) (string, bool) {
@@ -25,16 +25,16 @@ func GetCurrentUser(c *gin.Context) (string, bool) {
 
 func GetCurrentSession(c *gin.Context) (string, string, bool) {
 	sessionIDValue, sessionIDExists := c.Get(ContextAuthSessionIDKey)
-	accessTokenIDValue, accessTokenIDExists := c.Get(ContextAuthAccessTokenIDKey)
-	if !sessionIDExists || !accessTokenIDExists {
+	refreshTokenIDValue, refreshTokenIDExists := c.Get(ContextAuthRefreshTokenIDKey)
+	if !sessionIDExists || !refreshTokenIDExists {
 		return "", "", false
 	}
 
 	sessionID, sessionIDOk := sessionIDValue.(string)
-	accessTokenID, accessTokenIDOk := accessTokenIDValue.(string)
-	if !sessionIDOk || !accessTokenIDOk || sessionID == "" || accessTokenID == "" {
+	refreshTokenID, refreshTokenIDOk := refreshTokenIDValue.(string)
+	if !sessionIDOk || !refreshTokenIDOk || sessionID == "" || refreshTokenID == "" {
 		return "", "", false
 	}
 
-	return sessionID, accessTokenID, true
+	return sessionID, refreshTokenID, true
 }

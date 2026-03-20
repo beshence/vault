@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"vault/internal/app"
+	internalAuth "vault/internal/auth"
 	"vault/internal/database/models"
 	"vault/internal/middleware"
 
@@ -29,7 +30,7 @@ func RefreshV1dot0(deps *app.Dependencies) gin.HandlerFunc {
 			return
 		}
 
-		sessionID, tokenAccessTokenID, ok := middleware.GetCurrentSession(c)
+		sessionID, tokenRefreshTokenID, ok := middleware.GetCurrentSession(c)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"message": "unauthorized",
@@ -52,7 +53,7 @@ func RefreshV1dot0(deps *app.Dependencies) gin.HandlerFunc {
 			return
 		}
 
-		if session.AccessTokenID != tokenAccessTokenID {
+		if session.RefreshTokenID != tokenRefreshTokenID {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"message": "refresh token is no longer valid",
 			})
@@ -74,8 +75,15 @@ func RefreshV1dot0(deps *app.Dependencies) gin.HandlerFunc {
 			return
 		}
 
-		tokens, err := issueTokenPairForExistingSession(deps, user, session)
+		tokens, err := internalAuth.IssueTokenPairForExistingSession(deps, user, session, tokenRefreshTokenID)
 		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"message": "refresh token is no longer valid",
+				})
+				return
+			}
+
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": "failed to generate tokens",
 			})

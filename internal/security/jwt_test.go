@@ -40,8 +40,12 @@ func TestGenerateToken(t *testing.T) {
 		t.Fatal("AuthClaimsFromToken() expected claims")
 	}
 
-	if authClaims.SessionID != "session-id" || authClaims.AccountID != "user-id" || authClaims.AccessTokenID != "access-token-id" {
+	if authClaims.SessionID != "session-id" || authClaims.AccountID != "user-id" {
 		t.Fatalf("AuthClaimsFromToken() unexpected claims = %+v", authClaims)
+	}
+
+	if authClaims.RefreshTokenID != "" {
+		t.Fatalf("AuthClaimsFromToken() access token should not carry refresh token id, got %q", authClaims.RefreshTokenID)
 	}
 }
 
@@ -75,5 +79,14 @@ func TestTokenTypeFromClaims(t *testing.T) {
 
 	if tokenType, ok := TokenTypeFromClaims(refreshClaims); !ok || tokenType != TokenTypeRefresh {
 		t.Fatalf("TokenTypeFromClaims(refresh) = %s, %v", tokenType, ok)
+	}
+
+	refreshAuthClaims, ok := AuthClaimsFromToken(refreshClaims)
+	if !ok {
+		t.Fatal("AuthClaimsFromToken(refresh) expected claims")
+	}
+
+	if refreshAuthClaims.RefreshTokenID != "access-token-id" {
+		t.Fatalf("AuthClaimsFromToken(refresh) refresh token id = %q, expected %q", refreshAuthClaims.RefreshTokenID, "access-token-id")
 	}
 }

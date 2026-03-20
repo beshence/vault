@@ -8,11 +8,11 @@ import (
 )
 
 type Session struct {
-	ID            string    `gorm:"type:char(36);primaryKey" json:"id"`
-	AccountID     string    `gorm:"column:account_id;type:char(36);not null;index" json:"account_id"`
-	Name          string    `gorm:"size:255;not null" json:"name"`
-	AccessTokenID string    `gorm:"column:access_token_id;type:char(36);not null" json:"access_token_id"`
-	CreatedAt     time.Time `json:"created_at"`
+	ID             string    `gorm:"type:char(36);primaryKey" json:"id"`
+	AccountID      string    `gorm:"column:account_id;type:char(36);not null;index" json:"account_id"`
+	Name           string    `gorm:"size:255;not null" json:"name"`
+	RefreshTokenID string    `gorm:"column:refresh_token_id;type:char(36);not null" json:"refresh_token_id"`
+	CreatedAt      time.Time `json:"created_at"`
 
 	Account User `gorm:"foreignKey:AccountID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
 }

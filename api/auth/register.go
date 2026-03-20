@@ -3,9 +3,9 @@ package auth
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"vault/internal/app"
+	internalAuth "vault/internal/auth"
 	"vault/internal/database/models"
 	"vault/internal/security"
 
@@ -62,8 +62,7 @@ func RegisterV1dot0(deps *app.Dependencies) gin.HandlerFunc {
 			return
 		}
 
-		sessionName := strings.TrimSpace(c.GetHeader("User-Agent"))
-		tokens, err := issueTokenPairForNewSession(deps, user, sessionName)
+		tokens, err := internalAuth.IssueTokenPairForNewSession(deps, user, c.GetHeader("User-Agent"))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": "failed to generate tokens",

@@ -53,7 +53,7 @@ func RequireJWT(jwtManager *security.JWTManager, expectedTokenType security.Toke
 		c.Set(ContextAuthClaimsKey, claims)
 		c.Set(ContextAuthSessionIDKey, authClaims.SessionID)
 		c.Set(ContextAuthUserIDKey, authClaims.AccountID)
-		c.Set(ContextAuthAccessTokenIDKey, authClaims.AccessTokenID)
+		c.Set(ContextAuthRefreshTokenIDKey, authClaims.RefreshTokenID)
 		c.Next()
 	}
 }
