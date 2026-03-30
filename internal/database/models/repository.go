@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -16,14 +17,20 @@ var (
 )
 
 type Repository struct {
+	ID        string    `gorm:"type:char(36);primaryKey" json:"id"`
 	Name      string    `gorm:"size:128;not null;uniqueIndex:idx_owner_name" json:"name"`
-	Owner     string    `gorm:"type:char(36);not null;index;uniqueIndex:idx_owner_name" json:"owner"`
+	OwnerID   string    `gorm:"column:owner_id;type:char(36);not null;index;uniqueIndex:idx_owner_name" json:"owner_id"`
+	LastEvent *string   `gorm:"column:last_event_id;type:char(36);index" json:"last_event,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
 
-	User User `gorm:"foreignKey:Owner;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
+	Owner User `gorm:"foreignKey:OwnerID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
 }
 
 func (r *Repository) BeforeCreate(_ *gorm.DB) error {
+	if r.ID == "" {
+		r.ID = uuid.NewString()
+	}
+
 	return r.Validate()
 }
 
@@ -32,7 +39,7 @@ func (r *Repository) Validate() error {
 		return ErrInvalidRepositoryName
 	}
 
-	if r.Owner == "" {
+	if r.OwnerID == "" {
 		return ErrRepositoryOwnerRequired
 	}
 

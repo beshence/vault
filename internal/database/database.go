@@ -15,9 +15,13 @@ func New(databaseURL string) (*gorm.DB, error) {
 }
 
 func Migrate(db *gorm.DB) error {
-	if err := db.AutoMigrate(&models.User{}, &models.Session{}, &models.Repository{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Session{}, &models.Repository{}, &models.Event{}); err != nil {
 		return err
 	}
 
-	return migrations.RemoveUsersUpdatedAt(db)
+	if err := migrations.RemoveUsersUpdatedAt(db); err != nil {
+		return err
+	}
+
+	return migrations.EnsureEventsConstraints(db)
 }
