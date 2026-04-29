@@ -1,4 +1,4 @@
-package repo
+package chain
 
 import (
 	"errors"
@@ -9,14 +9,15 @@ import (
 	"vault/internal/middleware"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-type createRepositoryRequest struct {
+type createChainRequest struct {
 	Name string `json:"name" binding:"required,min=1,max=128"`
 }
 
-func CreateRepoV1dot0(deps *app.Dependencies) gin.HandlerFunc {
+func CreateChainV1dot0(deps *app.Dependencies) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if deps == nil || deps.DB == nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -33,7 +34,15 @@ func CreateRepoV1dot0(deps *app.Dependencies) gin.HandlerFunc {
 			return
 		}
 
-		var request createRepositoryRequest
+		ownerID, err := uuid.Parse(userID)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"message": "unauthorized",
+			})
+			return
+		}
+
+		var request createChainRequest
 		if err := c.ShouldBindJSON(&request); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": "invalid request body",
@@ -41,39 +50,39 @@ func CreateRepoV1dot0(deps *app.Dependencies) gin.HandlerFunc {
 			return
 		}
 
-		repository := models.Repository{
-			Name:  request.Name,
-			Owner: userID,
+		chain := models.Chain{
+			Name:    request.Name,
+			OwnerID: ownerID,
 		}
 
-		if err := repository.Validate(); err != nil {
+		if err := chain.Validate(); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": err.Error(),
 			})
 			return
 		}
 
-		if err := deps.DB.Create(&repository).Error; err != nil {
+		if err := deps.DB.Create(&chain).Error; err != nil {
 			if errors.Is(err, gorm.ErrDuplicatedKey) {
 				c.JSON(http.StatusConflict, gin.H{
-					"message": "you already have a repository with this name",
+					"message": "you already have a chain with this name",
 				})
 				return
 			}
 
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "failed to create repository",
+				"message": "failed to create chain",
 			})
 			return
 		}
 
 		c.JSON(http.StatusCreated, gin.H{
-			"repository": repository,
+			"chain": chain.Name,
 		})
 	}
 }
 
-func ReposV1dot0(deps *app.Dependencies) gin.HandlerFunc {
+func ChainsV1dot0(deps *app.Dependencies) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if deps == nil || deps.DB == nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -90,16 +99,29 @@ func ReposV1dot0(deps *app.Dependencies) gin.HandlerFunc {
 			return
 		}
 
-		repositories := make([]models.Repository, 0)
-		if err := deps.DB.Where("owner = ?", userID).Order("created_at desc").Find(&repositories).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": "failed to load repositories",
+		ownerID, err := uuid.Parse(userID)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"message": "unauthorized",
 			})
 			return
 		}
 
+		chains := make([]models.Chain, 0)
+		if err := deps.DB.Where("owner_id = ?", ownerID).Order("created_at desc").Find(&chains).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "failed to load chains",
+			})
+			return
+		}
+
+		names := make([]string, len(chains))
+		for i, chain := range chains {
+			names[i] = chain.Name
+		}
+
 		c.JSON(http.StatusOK, gin.H{
-			"repositories": repositories,
+			"chains": names,
 		})
 	}
 }
