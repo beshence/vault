@@ -29,7 +29,6 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-      USE_INTERNAL_DB: "true"
       DATABASE_URL: "postgres://vault:vault@postgres:5432/vault?sslmode=disable"
       JWT_SECRET: ${JWT_SECRET:-local_dev_secret_change_me}
       JWT_TTL_SECONDS: ${JWT_TTL_SECONDS:-3600}
